@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -23,27 +23,32 @@ function PostList() {
 
   const [sortBy, setSortBy] = useState("Newest");
 
-  const sortedPosts = [...posts].sort((a, b) => {
+  // Memoized Sorting
+  const sortedPosts = useMemo(() => {
 
-    switch (sortBy) {
+    return [...posts].sort((a, b) => {
 
-      case "Newest":
-        return b.id - a.id;
+      switch (sortBy) {
 
-      case "Oldest":
-        return a.id - b.id;
+        case "Newest":
+          return b.id - a.id;
 
-      case "Most Liked":
-        return b.likes - a.likes;
+        case "Oldest":
+          return a.id - b.id;
 
-      case "Pinned First":
-        return Number(b.pinned) - Number(a.pinned);
+        case "Most Liked":
+          return b.likes - a.likes;
 
-      default:
-        return 0;
-    }
+        case "Pinned First":
+          return Number(b.pinned) - Number(a.pinned);
 
-  });
+        default:
+          return 0;
+      }
+
+    });
+
+  }, [posts, sortBy]);
 
   return (
 
