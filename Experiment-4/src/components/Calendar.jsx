@@ -1,148 +1,86 @@
-import React, { useMemo, memo } from "react";
+import React, { memo } from 'react';
 
-// Individual Day Cell Component
-const DayCell = memo(
-  ({ dateObj, posts, onDateClick, onEventClick, onEventDrop, renderTracker, useReactMemo }) => {
-    // Increment total day cell renders safely
-    if (renderTracker && renderTracker.current !== undefined) {
-      renderTracker.current += 1;
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Day Cell Component
+const DayCell = ({ day, dateStr, posts, onMovePost, onSelectPost }) => {
+  const handleDragOver = (e) => e.preventDefault();
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const postId = e.dataTransfer.getData('text/plain');
+    if (postId && dateStr) {
+      onMovePost(postId, dateStr);
     }
-
-    const formattedDate = dateObj ? dateObj.toISOString().split("T")[0] : "";
-    const dayNumber = dateObj ? dateObj.getDate() : "";
-    const isCurrentMonth = dateObj ? dateObj.getMonth() === 8 : false; // September
-
-    const safePosts = Array.isArray(posts) ? posts : [];
-    const dayPosts = safePosts.filter(
-      (post) => post && post.date && post.date.startsWith(formattedDate)
-    );
-
-    // HTML5 Drag and Drop Handlers
-    const handleDragStart = (e, postId) => {
-      e.dataTransfer.setData("text/plain", postId);
-      e.dataTransfer.effectAllowed = "move";
-    };
-
-    const handleDragOver = (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-    };
-
-    const handleDrop = (e) => {
-      e.preventDefault();
-      const postId = e.dataTransfer.getData("text/plain");
-      if (postId && onEventDrop) {
-        onEventDrop({
-          event: {
-            id: postId,
-            startStr: `${formattedDate}T10:00:00`,
-          },
-        });
-      }
-    };
-
-    return (
-      <div
-        className={`calendar-day ${!isCurrentMonth ? "other-month" : ""}`}
-        onClick={() => onDateClick && onDateClick({ dateStr: formattedDate })}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <div className="day-number">{dayNumber}</div>
-        <div className="day-events">
-          {dayPosts.map((post) => (
-            <div
-              key={post.id || Math.random()}
-              className="calendar-event-chip"
-              draggable="true"
-              onDragStart={(e) => handleDragStart(e, post.id)}
-              style={{
-                backgroundColor:
-                  post.platform === "LinkedIn"
-                    ? "#0A66C2"
-                    : post.platform === "Instagram"
-                    ? "#E1306C"
-                    : "#1877F2",
-                cursor: "grab",
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onEventClick) {
-                  onEventClick({ event: { id: post.id } });
-                }
-              }}
-            >
-              <span className="chip-title">{post.title || "Untitled"}</span>
-              <span className="chip-time">
-                {post.date && post.date.includes("T")
-                  ? post.date.split("T")[1].slice(0, 5)
-                  : "10:00"}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  },
-  (prevProps, nextProps) => {
-    if (!nextProps.useReactMemo) return false;
-    return (
-      prevProps.posts === nextProps.posts &&
-      prevProps.onDateClick === nextProps.onDateClick &&
-      prevProps.onEventClick === nextProps.onEventClick &&
-      prevProps.onEventDrop === nextProps.onEventDrop
-    );
-  }
-);
-
-function Calendar({
-  posts = [],
-  onEventClick = () => {},
-  onEventDrop = () => {},
-  onDateClick = () => {},
-  useReactMemo = true,
-  totalCellRendersRef = { current: 0 },
-}) {
-  const days = useMemo(() => {
-    const calendarDays = [];
-    for (let i = 2; i > 0; i--) {
-      calendarDays.push(new Date(2026, 8, 1 - i));
-    }
-    for (let i = 1; i <= 30; i++) {
-      calendarDays.push(new Date(2026, 8, i));
-    }
-    for (let i = 1; calendarDays.length < 35; i++) {
-      calendarDays.push(new Date(2026, 9, i));
-    }
-    return calendarDays;
-  }, []);
+  };
 
   return (
-    <div className="custom-calendar-grid">
-      <div className="calendar-weekdays">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} className="weekday-header">
+    <div
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className="min-h-[100px] border border-slate-100 rounded-xl p-2 bg-white hover:bg-slate-50/50 transition-colors flex flex-col justify-between"
+    >
+      <span className="text-sm font-semibold text-slate-600">{day}</span>
+      
+      <div className="space-y-1 mt-1">
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            draggable
+            onDragStart={(e) => e.dataTransfer.setData('text/plain', post.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectPost(post.id);
+            }}
+            className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-medium truncate cursor-grab active:cursor-grabbing shadow-sm transition-all"
+          >
+            {post.title}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const MemoizedDayCell = memo(DayCell);
+
+export default function Calendar({ posts, onMovePost, onSelectPost, isMemoized }) {
+  // Generate 30 days for September 2026
+  const daysInMonth = Array.from({ length: 30 }, (_, i) => {
+    const dayNum = i + 1;
+    const dateStr = `2026-09-${dayNum.toString().padStart(2, '0')}`;
+    return { dayNum, dateStr };
+  });
+
+  const CellComponent = isMemoized ? MemoizedDayCell : DayCell;
+
+  return (
+    <div className="min-w-[650px] w-full">
+      {/* Weekday Headers */}
+      <div className="grid grid-cols-7 gap-2 mb-2 text-center">
+        {DAYS.map((day) => (
+          <div key={day} className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             {day}
           </div>
         ))}
       </div>
 
-      <div className="days-grid">
-        {days.map((dateObj, index) => (
-          <DayCell
-            key={index}
-            dateObj={dateObj}
-            posts={posts}
-            onDateClick={onDateClick}
-            onEventClick={onEventClick}
-            onEventDrop={onEventDrop}
-            useReactMemo={useReactMemo}
-            renderTracker={totalCellRendersRef}
-          />
-        ))}
+      {/* Grid */}
+      <div className="grid grid-cols-7 gap-2">
+        {daysInMonth.map(({ dayNum, dateStr }) => {
+          const dayPosts = posts.filter((p) => p.date === dateStr);
+          return (
+            <CellComponent
+              key={dateStr}
+              day={dayNum}
+              dateStr={dateStr}
+              posts={dayPosts}
+              onMovePost={onMovePost}
+              onSelectPost={onSelectPost}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
-
-export default memo(Calendar);
