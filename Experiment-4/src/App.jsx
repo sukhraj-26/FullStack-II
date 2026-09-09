@@ -3,7 +3,7 @@ import Calendar from './components/Calendar';
 import OptimizationToggles from './components/OptimizationToggles';
 import PerformanceMonitor from './components/PerformanceMonitor';
 import PostModal from './components/PostModal';
-import { Sidebar } from './components/Sidebar';
+import Sidebar  from './components/Sidebar';
 
 const INITIAL_POSTS = [
   { id: '1', title: 'POST vac photos', platform: 'Instagram', date: '2026-09-02', time: '10:00' },
