@@ -1,8 +1,12 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect } from 'react';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost }) => {
+const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost, onCellRender }) => {
+  useEffect(() => {
+    if (onCellRender) onCellRender();
+  });
+
   const handleDragOver = (e) => e.preventDefault();
 
   const handleDrop = (e) => {
@@ -43,7 +47,7 @@ const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost }) => {
 
 const MemoizedDayCell = memo(DayCell);
 
-export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoized }) {
+export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoized, onCellRender }) {
   const daysInMonth = Array.from({ length: 30 }, (_, i) => {
     const dayNum = i + 1;
     const dateStr = `2026-09-${dayNum.toString().padStart(2, '0')}`;
@@ -73,6 +77,7 @@ export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoi
               posts={dayPosts}
               onMovePost={onMovePost}
               onSelectPost={onSelectPost}
+              onCellRender={onCellRender}
             />
           );
         })}

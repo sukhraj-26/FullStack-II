@@ -21,31 +21,17 @@ export default function App() {
   const [useCallbackOpt, setUseCallbackOpt] = useState(true);
   const [useMemoOpt, setUseMemoOpt] = useState(true);
 
-  // Un-optimized render-burst state (simulates cascading child updates)
-  const [, setForceUnmemoizedRerenders] = useState(0);
-
-  // Render & Latency Tracker
-  const renderCounter = useRef(0);
+  // Consolidated Render Tracker
+  const [totalRenderCount, setTotalRenderCount] = useState(1);
   const [computeLatency, setComputeLatency] = useState(0);
 
   useEffect(() => {
-    renderCounter.current += 1;
-  });
+    setTotalRenderCount((prev) => prev + 1);
+  }, [posts, searchQuery, selectedPostId, useReactMemo, useCallbackOpt, useMemoOpt]);
 
-  // Force multiple re-renders on interaction when optimizations are OFF
-  const triggerUnoptimizedRerenders = () => {
-    if (!useReactMemo || !useCallbackOpt || !useMemoOpt) {
-      // Simulates cascading re-renders caused by un-memoized state flushes
-      for (let i = 0; i < 5; i++) {
-        setForceUnmemoizedRerenders((prev) => prev + 1);
-      }
-    }
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    triggerUnoptimizedRerenders();
-  };
+  const handleCellRender = useCallback(() => {
+    setTotalRenderCount((prev) => prev + 1);
+  }, []);
 
   // Filter Computation with Latency Benchmarking
   const filteredPosts = useMemo(() => {
@@ -56,8 +42,7 @@ export default function App() {
     );
 
     if (!useMemoOpt) {
-      // Simulate heavy computational load
-      for (let i = 0; i < 1500000; i++) {
+      for (let i = 0; i < 2000000; i++) {
         Math.sqrt(i);
       }
     }
@@ -73,7 +58,6 @@ export default function App() {
     setPosts((prev) =>
       prev.map((post) => (post.id === postId ? { ...post, date: newDate } : post))
     );
-    triggerUnoptimizedRerenders();
   };
 
   const memoizedHandleMovePost = useCallback((postId, newDate) => {
@@ -90,7 +74,7 @@ export default function App() {
   }, [posts, selectedPostId]);
 
   const handleResetProfiler = () => {
-    renderCounter.current = 0;
+    setTotalRenderCount(1);
     setComputeLatency(0);
     setPosts(INITIAL_POSTS);
   };
@@ -100,28 +84,16 @@ export default function App() {
       <Sidebar />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-6 space-y-6">
-        {/* Optimization Toggles */}
         <OptimizationToggles
           useReactMemo={useReactMemo}
-          setUseReactMemo={(val) => {
-            setUseReactMemo(val);
-            triggerUnoptimizedRerenders();
-          }}
+          setUseReactMemo={setUseReactMemo}
           useCallbackOpt={useCallbackOpt}
-          setUseCallbackOpt={(val) => {
-            setUseCallbackOpt(val);
-            triggerUnoptimizedRerenders();
-          }}
+          setUseCallbackOpt={setUseCallbackOpt}
           useMemoOpt={useMemoOpt}
-          setUseMemoOpt={(val) => {
-            setUseMemoOpt(val);
-            triggerUnoptimizedRerenders();
-          }}
+          setUseMemoOpt={setUseMemoOpt}
         />
 
-        {/* Dashboard Layout */}
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
-          
           <div className="flex-1 min-w-0 w-full bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
@@ -134,7 +106,7 @@ export default function App() {
                   type="text"
                   placeholder="Search posts..."
                   value={searchQuery}
-                  onChange={handleSearchChange}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-slate-100 border border-transparent rounded-xl text-sm focus:bg-white focus:border-indigo-500 focus:outline-none transition-all"
                 />
                 <svg className="w-4 h-4 absolute left-3 top-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,16 +119,13 @@ export default function App() {
               <Calendar
                 posts={filteredPosts}
                 onMovePost={handleMovePost}
-                onSelectPost={(id) => {
-                  setSelectedPostId(id);
-                  triggerUnoptimizedRerenders();
-                }}
+                onSelectPost={(id) => setSelectedPostId(id)}
                 isMemoized={useReactMemo}
+                onCellRender={handleCellRender}
               />
             </div>
           </div>
 
-          {/* Upcoming Posts Panel */}
           <div className="w-full xl:w-80 shrink-0 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-800">Upcoming</h2>
@@ -170,10 +139,7 @@ export default function App() {
               {posts.map((post) => (
                 <div
                   key={post.id}
-                  onClick={() => {
-                    setSelectedPostId(post.id);
-                    triggerUnoptimizedRerenders();
-                  }}
+                  onClick={() => setSelectedPostId(post.id)}
                   className="p-3 bg-slate-50 border border-slate-100 hover:border-indigo-200 rounded-xl cursor-pointer transition-all hover:shadow-sm"
                 >
                   <div className="font-semibold text-sm text-slate-800">{post.title}</div>
@@ -184,9 +150,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Live Performance Profiler */}
         <PerformanceMonitor
-          renderCount={renderCounter.current}
+          renderCount={totalRenderCount}
           computeLatency={computeLatency}
           useReactMemo={useReactMemo}
           useCallbackOpt={useCallbackOpt}
