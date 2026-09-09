@@ -1,83 +1,92 @@
-import React from "react";
+import React from 'react';
 
 export default function PerformanceMonitor({
-  renderCount,
-  computeDuration,
+  renderCount = 0,
+  computeLatency = 0,
   useReactMemo,
   useCallbackOpt,
   useMemoOpt,
-  onResetMetrics,
+  onReset
 }) {
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-          Performance Profiler & Monitor
-        </h3>
+    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold tracking-wider text-slate-800 uppercase">
+          PERFORMANCE PROFILER & MONITOR
+        </h2>
         <button
-          onClick={onResetMetrics}
-          className="text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
+          onClick={onReset}
+          className="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all"
         >
           Reset Profiler
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="p-3 bg-purple-50/50 rounded-xl border border-purple-100 text-center">
-          <div className="text-xs text-slate-500 font-medium mb-1">Parent Re-renders</div>
-          <div className="text-2xl font-extrabold text-purple-700">{renderCount}</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
+            Parent Re-renders
+          </span>
+          <span className="text-3xl font-extrabold text-indigo-600">{renderCount}</span>
         </div>
 
-        <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-center">
-          <div className="text-xs text-slate-500 font-medium mb-1">Compute Latency</div>
-          <div className={`text-2xl font-extrabold ${useMemoOpt ? "text-emerald-600" : "text-amber-600"}`}>
-            {computeDuration} <span className="text-sm font-normal">ms</span>
-          </div>
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
+            Compute Latency
+          </span>
+          <span className="text-3xl font-extrabold text-amber-500">
+            {computeLatency.toFixed(2)} <span className="text-sm font-medium">ms</span>
+          </span>
         </div>
       </div>
 
-      {/* MONITORING STATUS TABLE */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 text-xs">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+      <div className="border border-slate-100 rounded-xl overflow-hidden">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50 text-slate-400 font-semibold text-xs border-b border-slate-100">
             <tr>
-              <th className="p-2.5 font-semibold">Technique</th>
-              <th className="p-2.5 font-semibold">Status</th>
-              <th className="p-2.5 font-semibold">Impact Observed</th>
+              <th className="py-3 px-4">Technique</th>
+              <th className="py-3 px-4">Status</th>
+              <th className="py-3 px-4">Impact Observed</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 font-medium">
+          <tbody className="divide-y divide-slate-100 text-slate-700">
             <tr>
-              <td className="p-2.5 font-semibold text-slate-700">React.memo</td>
-              <td className="p-2.5">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${useReactMemo ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                  {useReactMemo ? "ACTIVE" : "OFF"}
+              <td className="py-3 px-4 font-semibold">React.memo</td>
+              <td className="py-3 px-4">
+                <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
+                  useReactMemo ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                }`}>
+                  {useReactMemo ? 'ON' : 'OFF'}
                 </span>
               </td>
-              <td className="p-2.5 text-slate-500">
-                {useReactMemo ? "Skipping unchanged day cell renders" : "Re-rendering all grid cells on update"}
+              <td className="py-3 px-4 text-xs text-slate-500">
+                {useReactMemo ? 'Grid cells skip re-renders on unrelated parent state changes' : 'Re-rendering all grid cells on every state update'}
               </td>
             </tr>
             <tr>
-              <td className="p-2.5 font-semibold text-slate-700">useCallback</td>
-              <td className="p-2.5">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${useCallbackOpt ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                  {useCallbackOpt ? "ACTIVE" : "OFF"}
+              <td className="py-3 px-4 font-semibold">useCallback</td>
+              <td className="py-3 px-4">
+                <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
+                  useCallbackOpt ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                }`}>
+                  {useCallbackOpt ? 'ON' : 'OFF'}
                 </span>
               </td>
-              <td className="p-2.5 text-slate-500">
-                {useCallbackOpt ? "Preserving event handler references" : "Recreating drag-and-drop functions"}
+              <td className="py-3 px-4 text-xs text-slate-500">
+                {useCallbackOpt ? 'Stable handler reference across renders' : 'Recreating drag-and-drop functions on every state change'}
               </td>
             </tr>
             <tr>
-              <td className="p-2.5 font-semibold text-slate-700">useMemo</td>
-              <td className="p-2.5">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${useMemoOpt ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                  {useMemoOpt ? "ACTIVE" : "OFF"}
+              <td className="py-3 px-4 font-semibold">useMemo</td>
+              <td className="py-3 px-4">
+                <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
+                  useMemoOpt ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                }`}>
+                  {useMemoOpt ? 'ON' : 'OFF'}
                 </span>
               </td>
-              <td className="p-2.5 text-slate-500">
-                {useMemoOpt ? "Caching post statistics calculation" : "Recalculating heavy loops on every state change"}
+              <td className="py-3 px-4 text-xs text-slate-500">
+                {useMemoOpt ? 'Cached search calculations' : 'Recalculating search loops on every single state change'}
               </td>
             </tr>
           </tbody>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import Calendar from './components/Calendar';
 import OptimizationToggles from './components/OptimizationToggles';
 import PerformanceMonitor from './components/PerformanceMonitor';
@@ -21,22 +21,60 @@ export default function App() {
   const [useCallbackOpt, setUseCallbackOpt] = useState(true);
   const [useMemoOpt, setUseMemoOpt] = useState(true);
 
+  // Render & Latency Tracker
+  const renderCounter = useRef(0);
+  const [computeLatency, setComputeLatency] = useState(0);
+
+  useEffect(() => {
+    renderCounter.current += 1;
+  });
+
+  // Filter Computation with Latency Benchmarking
+  const filteredPosts = useMemo(() => {
+    const startTime = performance.now();
+    
+    // Controlled loop simulation if useMemo is disabled
+    let result = posts.filter((p) =>
+      p.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (!useMemoOpt) {
+      for (let i = 0; i < 500000; i++) {
+        Math.sqrt(i);
+      }
+    }
+
+    const endTime = performance.now();
+    setComputeLatency(endTime - startTime);
+
+    return result;
+  }, [posts, searchQuery, useMemoOpt]);
+
   // Safe Post Selection Guard
   const activePost = useMemo(() => {
     return posts.find((p) => p.id === selectedPostId) || null;
   }, [posts, selectedPostId]);
 
-  // Filtered Posts Logic
-  const filteredPosts = useMemo(() => {
-    return posts.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [posts, searchQuery]);
+  // Drag & Drop Handler (toggles between memoized & non-memoized)
+  const rawHandleMovePost = (postId, newDate) => {
+    setPosts((prev) =>
+      prev.map((post) => (post.id === postId ? { ...post, date: newDate } : post))
+    );
+  };
 
-  // Drag & Drop Handler
-  const handleMovePost = useCallback((postId, newDate) => {
+  const memoizedHandleMovePost = useCallback((postId, newDate) => {
     setPosts((prev) =>
       prev.map((post) => (post.id === postId ? { ...post, date: newDate } : post))
     );
   }, []);
+
+  const handleMovePost = useCallbackOpt ? memoizedHandleMovePost : rawHandleMovePost;
+
+  const handleResetProfiler = () => {
+    renderCounter.current = 0;
+    setComputeLatency(0);
+    setPosts(INITIAL_POSTS);
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
@@ -114,7 +152,15 @@ export default function App() {
           </div>
         </div>
 
-        <PerformanceMonitor />
+        {/* Real-time Profiler */}
+        <PerformanceMonitor
+          renderCount={renderCounter.current}
+          computeLatency={computeLatency}
+          useReactMemo={useReactMemo}
+          useCallbackOpt={useCallbackOpt}
+          useMemoOpt={useMemoOpt}
+          onReset={handleResetProfiler}
+        />
       </main>
 
       {/* Safe Modal Guard */}
