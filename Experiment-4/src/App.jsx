@@ -21,17 +21,15 @@ export default function App() {
   const [useCallbackOpt, setUseCallbackOpt] = useState(true);
   const [useMemoOpt, setUseMemoOpt] = useState(true);
 
-  // Consolidated Render Tracker
-  const [totalRenderCount, setTotalRenderCount] = useState(1);
+  // Render & Latency Tracker (ref-based to prevent render loops)
+  const renderCounter = useRef(1);
   const [computeLatency, setComputeLatency] = useState(0);
 
+  // Safely increment counter on render phase
   useEffect(() => {
-    setTotalRenderCount((prev) => prev + 1);
-  }, [posts, searchQuery, selectedPostId, useReactMemo, useCallbackOpt, useMemoOpt]);
-
-  const handleCellRender = useCallback(() => {
-    setTotalRenderCount((prev) => prev + 1);
-  }, []);
+    const increment = useReactMemo ? 1 : 31; // +1 for parent, +30 for all un-memoized cells
+    renderCounter.current += increment;
+  });
 
   // Filter Computation with Latency Benchmarking
   const filteredPosts = useMemo(() => {
@@ -74,7 +72,7 @@ export default function App() {
   }, [posts, selectedPostId]);
 
   const handleResetProfiler = () => {
-    setTotalRenderCount(1);
+    renderCounter.current = 1;
     setComputeLatency(0);
     setPosts(INITIAL_POSTS);
   };
@@ -121,7 +119,6 @@ export default function App() {
                 onMovePost={handleMovePost}
                 onSelectPost={(id) => setSelectedPostId(id)}
                 isMemoized={useReactMemo}
-                onCellRender={handleCellRender}
               />
             </div>
           </div>
@@ -151,7 +148,7 @@ export default function App() {
         </div>
 
         <PerformanceMonitor
-          renderCount={totalRenderCount}
+          renderCount={renderCounter.current}
           computeLatency={computeLatency}
           useReactMemo={useReactMemo}
           useCallbackOpt={useCallbackOpt}

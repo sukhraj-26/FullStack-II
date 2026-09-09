@@ -1,12 +1,8 @@
-import React, { memo, useEffect } from 'react';
+import React, { memo } from 'react';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost, onCellRender }) => {
-  useEffect(() => {
-    if (onCellRender) onCellRender();
-  });
-
+const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost }) => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleDrop = (e) => {
@@ -21,11 +17,11 @@ const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost, onCellRen
     <div
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className="min-h-[100px] border border-slate-100 rounded-xl p-2 bg-white hover:bg-slate-50/50 transition-colors flex flex-col justify-between"
+      className="min-h-[105px] border border-slate-100/80 rounded-2xl p-2.5 bg-white hover:bg-slate-50/70 hover:shadow-md hover:border-slate-200 transition-all flex flex-col justify-between"
     >
-      <span className="text-sm font-semibold text-slate-600">{day}</span>
+      <span className="text-xs font-bold text-slate-400">{day}</span>
       
-      <div className="space-y-1 mt-1">
+      <div className="space-y-1.5 mt-1">
         {posts.map((post) => (
           <div
             key={post.id}
@@ -35,7 +31,7 @@ const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost, onCellRen
               e.stopPropagation();
               if (onSelectPost) onSelectPost(post.id);
             }}
-            className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-medium truncate cursor-grab active:cursor-grabbing shadow-sm transition-all"
+            className="p-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl text-xs font-semibold truncate cursor-grab active:cursor-grabbing shadow-sm shadow-rose-500/20 transition-all"
           >
             {post.title}
           </div>
@@ -47,7 +43,7 @@ const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost, onCellRen
 
 const MemoizedDayCell = memo(DayCell);
 
-export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoized, onCellRender }) {
+export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoized }) {
   const daysInMonth = Array.from({ length: 30 }, (_, i) => {
     const dayNum = i + 1;
     const dateStr = `2026-09-${dayNum.toString().padStart(2, '0')}`;
@@ -58,15 +54,15 @@ export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoi
 
   return (
     <div className="min-w-[650px] w-full">
-      <div className="grid grid-cols-7 gap-2 mb-2 text-center">
+      <div className="grid grid-cols-7 gap-2.5 mb-3 text-center">
         {DAYS.map((day) => (
-          <div key={day} className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <div key={day} className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">
             {day}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-2.5">
         {daysInMonth.map(({ dayNum, dateStr }) => {
           const dayPosts = posts.filter((p) => p.date === dateStr);
           return (
@@ -77,7 +73,6 @@ export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoi
               posts={dayPosts}
               onMovePost={onMovePost}
               onSelectPost={onSelectPost}
-              onCellRender={onCellRender}
             />
           );
         })}
