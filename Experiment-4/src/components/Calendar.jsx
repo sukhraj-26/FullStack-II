@@ -2,14 +2,13 @@ import React, { memo } from 'react';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// Day Cell Component
-const DayCell = ({ day, dateStr, posts, onMovePost, onSelectPost }) => {
+const DayCell = ({ day, dateStr, posts = [], onMovePost, onSelectPost }) => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleDrop = (e) => {
     e.preventDefault();
     const postId = e.dataTransfer.getData('text/plain');
-    if (postId && dateStr) {
+    if (postId && dateStr && onMovePost) {
       onMovePost(postId, dateStr);
     }
   };
@@ -30,7 +29,7 @@ const DayCell = ({ day, dateStr, posts, onMovePost, onSelectPost }) => {
             onDragStart={(e) => e.dataTransfer.setData('text/plain', post.id)}
             onClick={(e) => {
               e.stopPropagation();
-              onSelectPost(post.id);
+              if (onSelectPost) onSelectPost(post.id);
             }}
             className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-medium truncate cursor-grab active:cursor-grabbing shadow-sm transition-all"
           >
@@ -44,8 +43,7 @@ const DayCell = ({ day, dateStr, posts, onMovePost, onSelectPost }) => {
 
 const MemoizedDayCell = memo(DayCell);
 
-export default function Calendar({ posts, onMovePost, onSelectPost, isMemoized }) {
-  // Generate 30 days for September 2026
+export default function Calendar({ posts = [], onMovePost, onSelectPost, isMemoized }) {
   const daysInMonth = Array.from({ length: 30 }, (_, i) => {
     const dayNum = i + 1;
     const dateStr = `2026-09-${dayNum.toString().padStart(2, '0')}`;
@@ -56,7 +54,6 @@ export default function Calendar({ posts, onMovePost, onSelectPost, isMemoized }
 
   return (
     <div className="min-w-[650px] w-full">
-      {/* Weekday Headers */}
       <div className="grid grid-cols-7 gap-2 mb-2 text-center">
         {DAYS.map((day) => (
           <div key={day} className="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -65,7 +62,6 @@ export default function Calendar({ posts, onMovePost, onSelectPost, isMemoized }
         ))}
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-7 gap-2">
         {daysInMonth.map(({ dayNum, dateStr }) => {
           const dayPosts = posts.filter((p) => p.date === dateStr);

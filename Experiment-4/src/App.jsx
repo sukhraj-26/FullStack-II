@@ -3,7 +3,7 @@ import Calendar from './components/Calendar';
 import OptimizationToggles from './components/OptimizationToggles';
 import PerformanceMonitor from './components/PerformanceMonitor';
 import PostModal from './components/PostModal';
-import Sidebar  from './components/Sidebar';
+import Sidebar from './components/Sidebar';
 
 const INITIAL_POSTS = [
   { id: '1', title: 'POST vac photos', platform: 'Instagram', date: '2026-09-02', time: '10:00' },
@@ -21,7 +21,7 @@ export default function App() {
   const [useCallbackOpt, setUseCallbackOpt] = useState(true);
   const [useMemoOpt, setUseMemoOpt] = useState(true);
 
-  // Safe Post Selection Guard (Prevents refresh crash)
+  // Safe Post Selection Guard
   const activePost = useMemo(() => {
     return posts.find((p) => p.id === selectedPostId) || null;
   }, [posts, selectedPostId]);
@@ -56,7 +56,7 @@ export default function App() {
         {/* Main Dashboard Layout */}
         <div className="flex flex-col xl:flex-row gap-6 w-full items-start">
           
-          {/* Calendar Container (min-w-0 flex-1 stops calendar from compressing) */}
+          {/* Calendar Container */}
           <div className="flex-1 min-w-0 w-full bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>

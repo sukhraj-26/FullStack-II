@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Sidebar() {
+export function Sidebar() {
   return (
     <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen shrink-0 p-4">
       <div className="text-xl font-bold text-white mb-8 px-2">
@@ -14,3 +14,5 @@ export default function Sidebar() {
     </aside>
   );
 }
+
+export default Sidebar;
