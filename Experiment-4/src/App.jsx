@@ -6,14 +6,26 @@ import PostModal from './components/PostModal';
 import CreatePostModal from './components/CreatePostModal';
 import Sidebar from './components/Sidebar';
 
-const INITIAL_POSTS = [
+const DEFAULT_POSTS = [
   { id: '1', title: 'POST vac photos', platform: 'Instagram', date: '2026-09-02', time: '10:00' },
   { id: '2', title: 'JOURNALING for MENTAL HEALTH', platform: 'YouTube', date: '2026-09-09', time: '10:00' },
   { id: '3', title: 'Add CS teacher on linkedin', platform: 'LinkedIn', date: '2026-09-18', time: '10:00' }
 ];
 
 export default function App() {
-  const [posts, setPosts] = useState(INITIAL_POSTS);
+  // Load initial posts from LocalStorage (or fallback to defaults)
+  const [posts, setPosts] = useState(() => {
+    const saved = localStorage.getItem('scheduled_posts');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved posts', e);
+      }
+    }
+    return DEFAULT_POSTS;
+  });
+
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [platformFilter, setPlatformFilter] = useState('All');
@@ -23,6 +35,11 @@ export default function App() {
   const [useReactMemo, setUseReactMemo] = useState(true);
   const [useCallbackOpt, setUseCallbackOpt] = useState(true);
   const [useMemoOpt, setUseMemoOpt] = useState(true);
+
+  // Save posts to LocalStorage on every update
+  useEffect(() => {
+    localStorage.setItem('scheduled_posts', JSON.stringify(posts));
+  }, [posts]);
 
   // Ref-based render counting
   const renderCounter = useRef(1);
@@ -87,7 +104,8 @@ export default function App() {
   const handleResetProfiler = () => {
     renderCounter.current = 1;
     setComputeLatency(0);
-    setPosts(INITIAL_POSTS);
+    setPosts(DEFAULT_POSTS);
+    localStorage.removeItem('scheduled_posts');
     setSearchQuery('');
     setPlatformFilter('All');
   };
@@ -222,7 +240,7 @@ export default function App() {
         />
       </main>
 
-      {/* Post Details & Creator Modals */}
+      {/* Modals */}
       {activePost && (
         <PostModal
           post={activePost}
